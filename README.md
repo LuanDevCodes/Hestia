@@ -1,5 +1,8 @@
 # [!] Projeto Héstia - Limine OpenRGB: Correção de detecção de RAM no Linux (CachyOS)
 
+> [!NOTE]
+> Read this documentation in English: [README_ENGLISH.md](README_ENGLISH.md)
+
 Este repositório fornece a documentação técnica e uma automação para resolver o problema de memórias RAM que não são detectadas pelo OpenRGB em sistemas Linux (foco em Arch Linux / CachyOS utilizando o gestor de arranque Limine).
 
 A solução baseia-se em alterações cirúrgicas nos parâmetros de inicialização do kernel, garantindo que o hardware seja reconhecido pelo barramento I2C sem comprometer a estabilidade do boot.
@@ -148,3 +151,39 @@ O log completo de cada verificação pode ser acompanhado no arquivo local:
 ```bash
 cat hestia_execucao.log
 ```
+
+---
+
+## [7] Script complementar: aplicação do perfil de iluminação na inicialização (KDE Plasma)
+
+Para que o OpenRGB aplique automaticamente seu perfil de iluminação configurado assim que você entrar no sistema, o repositório inclui o script auxiliar `aplicar_rgb.sh`.
+
+Ao iniciar o KDE Plasma, os serviços gráficos, monitores e controladores USB/I2C ainda estão em fase de carregamento nos primeiros instantes. Se o OpenRGB tentar aplicar as configurações imediatamente no primeiro segundo de login, o comando pode falhar silenciosamente ou algum componente pode não responder a tempo. A pausa de 15 segundos garante que toda a interface e os barramentos estejam 100% prontos antes de enviar a ordem de iluminação. OBS: sofri bugs de não carregamento da interface por causa disso :P
+
+### [>] Como configurar:
+
+1. **Defina e salve seu perfil no OpenRGB:**
+   - Abra o OpenRGB, configure as cores e efeitos desejados para suas memórias e periféricos.
+   - Salve o perfil com um nome de sua escolha (exemplo: `MeuPerfil`).
+
+2. **Ajuste o script `aplicar_rgb.sh`:**
+   - Abra o arquivo `aplicar_rgb.sh` em um editor de texto e troque `NomeDoSeuPerfil` pelo nome exato do perfil salvo no OpenRGB:
+
+     ```bash
+     openrgb --profile NomeDoSeuPerfil
+     ```
+
+3. **Conceda permissão de execução:**
+
+   ```bash
+   chmod +x aplicar_rgb.sh
+   ```
+
+4. **Cadastre no Início Automático do KDE:**
+   - Abra as **Configurações do Sistema** (*System Settings*) do KDE Plasma.
+   - Vá em **Inicialização e Desligamento** (*Startup and Shutdown*) -> **Inicialização Automática** (*Autostart*).
+   - Clique em **+ Adicionar...** (*+ Add...*) e selecione **Adicionar script de login...** (*Add Login Script...*).
+   - Selecione o arquivo `aplicar_rgb.sh`.
+   - Garanta que a caixa de seleção do script permaneça ativada.
+
+A partir do próximo login, o KDE iniciará o script em segundo plano e, após os 15 segundos de estabilização, suas cores personalizadas serão aplicadas automaticamente. Desse modo tanto a Hestia quanto esse script vão garantir sucesso no carregamento das cores independente de atualizações e ao iniciar o sistema :D
