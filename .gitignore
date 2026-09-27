@@ -1,0 +1,37 @@
+# Arquivos sensiveis e variaveis de ambiente
+.env
+.env.*
+*.env
+
+# Logs gerados pelas execucoes da automacao
+*.log
+hestia_execucao.log*
+
+# Backups gerados pela rotina de protecao do Limine
+backups/
+*.conf
+*.bak
+
+# Cache e arquivos compilados pelo Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Ambientes virtuais
+venv/
+.venv/
+env/
+ENV/
+
+# Configuracoes de editores e IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Arquivos temporarios de sistema operacional
+.DS_Store
+Thumbs.db
+Desktop.ini
