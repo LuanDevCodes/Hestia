@@ -77,34 +77,55 @@ A automação Hestia foi projetada para ser executada no momento do encerramento
 
 ## [5] Instalação e Configuração no Sistema
 
-### [>] Passo 1: Permissão de Execução no Wrapper Shell
-Conceda permissão de execução para o script wrapper:
+Para garantir que a Guardiã Héstia execute de forma atômica e segura no momento exato em que o computador é desligado, será necessário usar um serviço nativo do **Systemd**. Isso evita que o encerramento abrupto da interface gráfica (KDE/GNOME) aborte o script pela metade.
+
+### [>] Passo 1: Permissão de Execução
+Conceda permissão de execução para o script wrapper e para o código Python. Navegue até a pasta do projeto e execute:
+
 ```bash
-chmod +x executar_hestia.sh
+chmod +x executar_hestia.sh Hestia.py
 ```
-O wrapper shell detecta a disponibilidade do `python3`, verifica permissões via `$(id -u)`, eleva privilégios automaticamente via `sudo` repassando argumentos e propaga os códigos de retorno (`exit 0` para sucesso e `exit 1` para falha).
+*(Nota: O wrapper `executar_hestia.sh` atua como uma ponte de segurança, garantindo que o diretório de trabalho correto seja ativado e repassando argumentos nativamente).*
 
-### [>] Passo 2: Permissão de Administrador sem Senha (Sudoers)
-Como a modificação de arquivos em `/boot` exige privilégios de superusuário e o encerramento de sessão ocorre sem terminal interativo para digitação de senha, configure uma permissão específica via `sudoers`:
+### [>] Passo 2: Criação do Serviço Systemd
+Crie o arquivo de serviço do sistema com privilégios de administrador:
 
-1. Abra o editor de regras seguras do sudo:
-   ```bash
-   sudo visudo -f /etc/sudoers.d/hestia
-   ```
+```bash
+sudo nano /etc/systemd/system/hestia.service
+```
 
-2. Insira a linha abaixo, substituindo `seu_usuario` pelo seu nome de usuário no sistema e `/caminho/completo` pelo caminho real da pasta onde o projeto reside:
-   ```text
-   seu_usuario ALL=(ALL) NOPASSWD: /caminho/completo/executar_hestia.sh
-   ```
+### [>] Passo 3: Configuração do Serviço
+Cole o código abaixo no editor. **Atenção:** Lembre-se de substituir o `/caminho/completo/para/Hestia` pelo caminho real de onde você salvou a pasta do projeto no seu computador.
 
-3. Salve e saia do editor.
+```ini
+[Unit]
+Description=Guardiã Hestia - Proteção do Limine ao desligar
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target
 
-### [>] Passo 3: Configuração no KDE Plasma (Scripts ao Encerrar Sessão)
-1. Abra as **Configurações do Sistema** do KDE Plasma
-2. Navegue até **Iniciar e Desligar** -> **Iniciar automaticamente**
-3. Na seção **Scripts ao encerrar sessão**, clique em **Adicionar novo** -> **Adicionar script de encerramento**
-4. Selecione o arquivo `executar_hestia.sh`
-5. Marque a opção para manter a execução ativa
+[Service]
+Type=oneshot
+
+# Define a pasta do projeto como raiz para que os backups sejam salvos no local correto
+WorkingDirectory=/caminho/completo/para/Hestia
+
+# Aponta para o script wrapper que gerenciará a chamada do Python
+ExecStart=/caminho/completo/para/Hestia/executar_hestia.sh
+
+[Install]
+WantedBy=shutdown.target reboot.target halt.target
+```
+Salve o arquivo (Pressione **Ctrl+O**, depois **Enter**) e feche o editor (**Ctrl+X**).
+
+### [>] Passo 4: Ativação da Automação
+Agora, informe ao Linux que um novo serviço foi criado e ative-o para rodar em todos os futuros encerramentos do sistema:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable hestia.service
+```
+
+A partir de agora, a Héstia rodará nos bastidores com privilégios nativos de sistema todas as vezes que a máquina for desligada ou reiniciada, garantindo a proteção do `/boot`.
 
 ---
 
