@@ -10,14 +10,12 @@ DIRETORIO_ATUAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_PYTHON="$DIRETORIO_ATUAL/Hestia.py"
 
 # Validação de privilégios administrativos (Root)
-# No Linux, $(id -u) igual a 0 indica que o processo já está rodando como root
-# Como o arquivo /boot/limine.conf pertence ao root, permissões elevadas são obrigatórias para gravação
 if [ "$(id -u)" -ne 0 ]; then
     echo "A automação Hestia precisa de permissões de administrador para proteger o /boot"
     echo "Elevando privilégios via sudo..."
     
-    # Reexecuta este mesmo script repassando todos os argumentos através do sudo
-    exec sudo "$0" "$@"
+    # Usa o caminho absoluto garantido em vez de $0
+    exec sudo "${BASH_SOURCE[0]}" "$@"
     echo "[ERRO] (x_x) Falha ao elevar privilegios com sudo"
     exit 1
 fi
@@ -29,8 +27,13 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Execução da automação em Python
-# Garante a chamada via python3 nativo do CachyOS repassando os parâmetros recebidos
 echo "[#] (◕‿◕) Iniciando execução da Guardiã Hestia"
+
+# Força o terminal a entrar na pasta do projeto
+# Isso garante que a pasta /backups seja criada no local certo
+cd "$DIRETORIO_ATUAL" || exit 1
+
+# Garante a chamada via python3 nativo do CachyOS repassando os parâmetros recebidos
 python3 "$SCRIPT_PYTHON" "$@"
 CODIGO_RETORNO=$?
 
